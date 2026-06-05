@@ -14,9 +14,15 @@
             <p class="eyebrow">SecretX Casino</p>
             <h1 id="game-title">Lucky Vault</h1>
           </div>
-          <div class="jackpot" aria-live="polite">
-            <span>Jackpot</span>
-            <strong id="jackpot">5000</strong>
+          <div class="jackpot-board" aria-live="polite">
+            <div class="jackpot">
+              <span>Jackpot</span>
+              <strong id="jackpot">5000</strong>
+            </div>
+            <div class="jackpot must-hit">
+              <span>Must Hit By</span>
+              <strong id="must-hit-by">8000</strong>
+            </div>
           </div>
         </header>
 
@@ -46,6 +52,10 @@
             <span>Last Win</span>
             <strong id="last-win">0</strong>
           </div>
+          <div>
+            <span>To Must Hit</span>
+            <strong id="jackpot-remaining">3000</strong>
+          </div>
         </section>
 
         <p class="message" id="message">Choose a bet and spin the vault.</p>
@@ -68,6 +78,10 @@
         <div class="payout-row">
           <span>7 7 7</span>
           <strong>Jackpot x200</strong>
+        </div>
+        <div class="payout-row">
+          <span>Must hit by</span>
+          <strong>Guaranteed jackpot</strong>
         </div>
         <div class="payout-row">
           <span>X X X</span>

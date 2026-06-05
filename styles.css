@@ -108,8 +108,13 @@ h1 {
   text-transform: uppercase;
 }
 
+.jackpot-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(132px, 1fr));
+  gap: 10px;
+}
+
 .jackpot {
-  min-width: 132px;
   padding: 12px 14px;
   border-radius: 6px;
   background: #111216;
@@ -122,6 +127,10 @@ h1 {
   color: var(--green);
   font-size: clamp(1.5rem, 3vw, 2.1rem);
   line-height: 1.1;
+}
+
+.must-hit strong {
+  color: var(--red);
 }
 
 .display {
@@ -194,7 +203,7 @@ h1 {
 
 .status-bar {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-top: 18px;
 }
@@ -319,6 +328,10 @@ h1 {
   .top-panel {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .jackpot-board {
+    grid-template-columns: 1fr;
   }
 
   .jackpot {
