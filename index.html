@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecretX Slots</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="machine" aria-labelledby="game-title">
+      <section class="cabinet">
+        <header class="top-panel">
+          <div>
+            <p class="eyebrow">SecretX Casino</p>
+            <h1 id="game-title">Lucky Vault</h1>
+          </div>
+          <div class="jackpot" aria-live="polite">
+            <span>Jackpot</span>
+            <strong id="jackpot">5000</strong>
+          </div>
+        </header>
+
+        <section class="display" aria-label="Slot machine reels">
+          <div class="payline" aria-hidden="true"></div>
+          <div class="reel" data-reel="0" aria-live="off">
+            <div class="symbol">7</div>
+          </div>
+          <div class="reel" data-reel="1" aria-live="off">
+            <div class="symbol">X</div>
+          </div>
+          <div class="reel" data-reel="2" aria-live="off">
+            <div class="symbol">$</div>
+          </div>
+        </section>
+
+        <section class="status-bar" aria-live="polite">
+          <div>
+            <span>Credits</span>
+            <strong id="credits">1000</strong>
+          </div>
+          <div>
+            <span>Bet</span>
+            <strong id="bet">25</strong>
+          </div>
+          <div>
+            <span>Last Win</span>
+            <strong id="last-win">0</strong>
+          </div>
+        </section>
+
+        <p class="message" id="message">Choose a bet and spin the vault.</p>
+
+        <section class="controls" aria-label="Game controls">
+          <button class="icon-button" id="decrease-bet" type="button" aria-label="Decrease bet" title="Decrease bet">
+            -
+          </button>
+          <button class="spin-button" id="spin" type="button">Spin</button>
+          <button class="icon-button" id="increase-bet" type="button" aria-label="Increase bet" title="Increase bet">
+            +
+          </button>
+          <button class="secondary-button" id="max-bet" type="button">Max Bet</button>
+          <button class="secondary-button" id="reset" type="button">Reset</button>
+        </section>
+      </section>
+
+      <aside class="paytable" aria-label="Payout table">
+        <h2>Payouts</h2>
+        <div class="payout-row">
+          <span>7 7 7</span>
+          <strong>Jackpot x200</strong>
+        </div>
+        <div class="payout-row">
+          <span>X X X</span>
+          <strong>x75</strong>
+        </div>
+        <div class="payout-row">
+          <span>$ $ $</span>
+          <strong>x40</strong>
+        </div>
+        <div class="payout-row">
+          <span>Same symbols</span>
+          <strong>x12</strong>
+        </div>
+        <div class="payout-row">
+          <span>Two matching</span>
+          <strong>x2</strong>
+        </div>
+      </aside>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
