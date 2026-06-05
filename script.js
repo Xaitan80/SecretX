@@ -19,6 +19,7 @@ const state = {
   lastWin: 0,
   jackpot: 5000,
   spinning: false,
+  fastStopRequested: false,
 };
 
 const reels = [...document.querySelectorAll(".reel")];
@@ -32,6 +33,7 @@ const decreaseBetButton = document.querySelector("#decrease-bet");
 const increaseBetButton = document.querySelector("#increase-bet");
 const maxBetButton = document.querySelector("#max-bet");
 const resetButton = document.querySelector("#reset");
+let stopCurrentReel = null;
 
 function weightedSymbol() {
   const totalWeight = symbols.reduce((total, symbol) => total + symbol.weight, 0);
@@ -103,12 +105,42 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function waitForReel(ms) {
+  if (state.fastStopRequested) {
+    return delay(80);
+  }
+
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      stopCurrentReel = null;
+      resolve();
+    }, ms);
+
+    stopCurrentReel = () => {
+      clearTimeout(timeout);
+      stopCurrentReel = null;
+      resolve();
+    };
+  });
+}
+
+function requestFastStop() {
+  if (!state.spinning || state.fastStopRequested) {
+    return;
+  }
+
+  state.fastStopRequested = true;
+  setMessage("Fast stop engaged.");
+  stopCurrentReel?.();
+}
+
 async function spin() {
   if (state.spinning || state.credits < state.bet) {
     return;
   }
 
   state.spinning = true;
+  state.fastStopRequested = false;
   state.credits -= state.bet;
   state.lastWin = 0;
   setMessage("Reels are spinning...");
@@ -119,7 +151,7 @@ async function spin() {
   const result = [weightedSymbol(), weightedSymbol(), weightedSymbol()];
 
   for (let index = 0; index < reels.length; index += 1) {
-    await delay(620 + index * 360);
+    await waitForReel(620 + index * 360);
     const reel = reels[index];
     reel.classList.remove("spinning");
     reel.querySelector(".symbol").textContent = result[index];
@@ -138,6 +170,7 @@ async function spin() {
   }
 
   state.spinning = false;
+  state.fastStopRequested = false;
   setMessage(
     win > 0 ? `${outcome.text} You won ${win} credits.` : `${outcome.text} Try again.`,
     win > 0 ? "win" : "loss",
@@ -162,6 +195,8 @@ function resetGame() {
   state.lastWin = 0;
   state.jackpot = 5000;
   state.spinning = false;
+  state.fastStopRequested = false;
+  stopCurrentReel?.();
   reels.forEach((reel, index) => {
     reel.classList.remove("spinning");
     reel.querySelector(".symbol").textContent = ["7", "X", "$"][index];
@@ -182,6 +217,11 @@ resetButton.addEventListener("click", resetGame);
 document.addEventListener("keydown", (event) => {
   if (event.code === "Space") {
     event.preventDefault();
+    if (state.spinning) {
+      requestFastStop();
+      return;
+    }
+
     spin();
   }
 });
