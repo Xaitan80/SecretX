@@ -25,6 +25,7 @@ const state = {
   mustHitBy: MUST_HIT_BY,
   spinning: false,
   fastStopRequested: false,
+  jackpotCheatRequested: false,
 };
 
 const reels = [...document.querySelectorAll(".reel")];
@@ -41,6 +42,7 @@ const increaseBetButton = document.querySelector("#increase-bet");
 const maxBetButton = document.querySelector("#max-bet");
 const resetButton = document.querySelector("#reset");
 let stopCurrentReel = null;
+let currentSpinResult = null;
 
 function weightedSymbol() {
   const totalWeight = symbols.reduce((total, symbol) => total + symbol.weight, 0);
@@ -158,6 +160,17 @@ function requestFastStop() {
   stopCurrentReel?.();
 }
 
+function requestJackpotCheat() {
+  if (!state.spinning || !currentSpinResult) {
+    return;
+  }
+
+  state.jackpotCheatRequested = true;
+  currentSpinResult.fill("7");
+  setMessage("Test jackpot forced.");
+  requestFastStop();
+}
+
 async function spin() {
   if (state.spinning || state.credits < state.bet) {
     return;
@@ -165,6 +178,7 @@ async function spin() {
 
   state.spinning = true;
   state.fastStopRequested = false;
+  state.jackpotCheatRequested = false;
   state.credits -= state.bet;
   state.lastWin = 0;
   setMessage("Reels are spinning...");
@@ -178,6 +192,7 @@ async function spin() {
   const result = mustHitTriggered || earlyJackpotTriggered
     ? ["7", "7", "7"]
     : [weightedSymbol(), weightedSymbol(), weightedSymbol()];
+  currentSpinResult = result;
 
   for (let index = 0; index < reels.length; index += 1) {
     await waitForReel(620 + index * 360);
@@ -202,8 +217,11 @@ async function spin() {
 
   state.spinning = false;
   state.fastStopRequested = false;
+  currentSpinResult = null;
   setMessage(
-    mustHitTriggered
+    state.jackpotCheatRequested
+      ? `Test jackpot forced. You won ${win} credits.`
+      : mustHitTriggered
       ? `Must hit by triggered. You won ${win} credits.`
       : earlyJackpotTriggered
         ? `Jackpot hit before must hit by. You won ${win} credits.`
@@ -217,6 +235,7 @@ async function spin() {
     setMessage("Out of credits. Reset to play again.", "loss");
   }
 
+  state.jackpotCheatRequested = false;
   updateUi();
 }
 
@@ -234,6 +253,8 @@ function resetGame() {
   state.mustHitBy = MUST_HIT_BY;
   state.spinning = false;
   state.fastStopRequested = false;
+  state.jackpotCheatRequested = false;
+  currentSpinResult = null;
   stopCurrentReel?.();
   reels.forEach((reel, index) => {
     reel.classList.remove("spinning");
@@ -261,6 +282,11 @@ document.addEventListener("keydown", (event) => {
     }
 
     spin();
+  }
+
+  if (event.code === "KeyJ") {
+    event.preventDefault();
+    requestJackpotCheat();
   }
 });
 
