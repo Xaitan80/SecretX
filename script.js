@@ -1,5 +1,8 @@
+const BONUS_SYMBOL = "🏴‍☠️";
+
 const symbols = [
   { value: "7", weight: 4 },
+  { value: BONUS_SYMBOL, weight: 5 },
   { value: "X", weight: 7 },
   { value: "$", weight: 10 },
   { value: "#", weight: 13 },
@@ -23,6 +26,7 @@ const state = {
   lastWin: 0,
   jackpot: createJackpotReset(),
   mustHitBy: MUST_HIT_BY,
+  mustHitBonusTriggered: false,
   spinning: false,
   fastStopRequested: false,
   jackpotCheatRequested: false,
@@ -34,7 +38,6 @@ const betEl = document.querySelector("#bet");
 const lastWinEl = document.querySelector("#last-win");
 const jackpotEl = document.querySelector("#jackpot");
 const mustHitByEl = document.querySelector("#must-hit-by");
-const jackpotRemainingEl = document.querySelector("#jackpot-remaining");
 const messageEl = document.querySelector("#message");
 const spinButton = document.querySelector("#spin");
 const decreaseBetButton = document.querySelector("#decrease-bet");
@@ -76,11 +79,8 @@ function createJackpotReset() {
   return randomInt(JACKPOT_RESET_MIN, JACKPOT_RESET_MAX);
 }
 
-function jackpotHitChance() {
-  const progress =
-    (state.jackpot - JACKPOT_RESET_MIN) / (state.mustHitBy - JACKPOT_RESET_MIN);
-  const clampedProgress = Math.min(1, Math.max(0, progress));
-  return 0.01 + clampedProgress ** 4 * 0.24;
+function formatCredits(value) {
+  return Number.isInteger(value) ? value : value.toFixed(2);
 }
 
 function setMessage(text, type = "") {
@@ -89,12 +89,11 @@ function setMessage(text, type = "") {
 }
 
 function updateUi() {
-  creditsEl.textContent = state.credits;
+  creditsEl.textContent = formatCredits(state.credits);
   betEl.textContent = state.bet;
-  lastWinEl.textContent = state.lastWin;
-  jackpotEl.textContent = state.jackpot;
+  lastWinEl.textContent = formatCredits(state.lastWin);
+  jackpotEl.textContent = formatCredits(state.jackpot);
   mustHitByEl.textContent = state.mustHitBy;
-  jackpotRemainingEl.textContent = Math.max(0, state.mustHitBy - state.jackpot);
 
   const canSpin = state.credits >= state.bet && !state.spinning;
   spinButton.disabled = !canSpin;
@@ -106,6 +105,14 @@ function updateUi() {
 
 function evaluate(result) {
   const line = result.join("");
+
+  if (result.every((symbol) => symbol === BONUS_SYMBOL)) {
+    return {
+      multiplier: 0,
+      text: "Bonus game triggered.",
+      bonus: true,
+    };
+  }
 
   if (payouts[line]) {
     return {
@@ -186,11 +193,11 @@ async function spin() {
 
   reels.forEach((reel) => reel.classList.add("spinning"));
 
-  const jackpotContribution = Math.ceil(state.bet * 0.2);
-  const mustHitTriggered = state.jackpot + jackpotContribution >= state.mustHitBy;
-  const earlyJackpotTriggered = !mustHitTriggered && secureRandom() < jackpotHitChance();
-  const result = mustHitTriggered || earlyJackpotTriggered
-    ? ["7", "7", "7"]
+  const jackpotContribution = state.bet * 0.05;
+  const mustHitTriggered =
+    !state.mustHitBonusTriggered && state.jackpot + jackpotContribution >= state.mustHitBy;
+  const result = mustHitTriggered
+    ? [BONUS_SYMBOL, BONUS_SYMBOL, BONUS_SYMBOL]
     : [weightedSymbol(), weightedSymbol(), weightedSymbol()];
   currentSpinResult = result;
 
@@ -203,7 +210,7 @@ async function spin() {
 
   const outcome = evaluate(result);
   const regularWin = state.bet * outcome.multiplier;
-  const jackpotAward = state.jackpot + (mustHitTriggered ? jackpotContribution : 0);
+  const jackpotAward = state.jackpot;
   const win = outcome.jackpot ? regularWin + jackpotAward : regularWin;
 
   state.lastWin = win;
@@ -211,8 +218,12 @@ async function spin() {
   if (outcome.jackpot) {
     state.jackpot = createJackpotReset();
     state.mustHitBy = MUST_HIT_BY;
+    state.mustHitBonusTriggered = false;
   } else {
     state.jackpot += jackpotContribution;
+    if (mustHitTriggered) {
+      state.mustHitBonusTriggered = true;
+    }
   }
 
   state.spinning = false;
@@ -220,15 +231,15 @@ async function spin() {
   currentSpinResult = null;
   setMessage(
     state.jackpotCheatRequested
-      ? `Test jackpot forced. You won ${win} credits.`
+      ? `Test jackpot forced. You won ${formatCredits(win)} credits.`
       : mustHitTriggered
-      ? `Must hit by triggered. You won ${win} credits.`
-      : earlyJackpotTriggered
-        ? `Jackpot hit before must hit by. You won ${win} credits.`
+      ? "Must hit by triggered the bonus game."
+      : outcome.bonus
+        ? "Three Jolly Rogers triggered the bonus game."
       : win > 0
-        ? `${outcome.text} You won ${win} credits.`
+        ? `${outcome.text} You won ${formatCredits(win)} credits.`
         : `${outcome.text} Try again.`,
-    win > 0 ? "win" : "loss",
+    win > 0 || outcome.bonus ? "win" : "loss",
   );
 
   if (state.credits < 5) {
@@ -251,6 +262,7 @@ function resetGame() {
   state.lastWin = 0;
   state.jackpot = createJackpotReset();
   state.mustHitBy = MUST_HIT_BY;
+  state.mustHitBonusTriggered = false;
   state.spinning = false;
   state.fastStopRequested = false;
   state.jackpotCheatRequested = false;
