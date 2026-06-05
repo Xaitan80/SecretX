@@ -35,7 +35,7 @@ const resetButton = document.querySelector("#reset");
 
 function weightedSymbol() {
   const totalWeight = symbols.reduce((total, symbol) => total + symbol.weight, 0);
-  let roll = Math.random() * totalWeight;
+  let roll = secureRandom() * totalWeight;
 
   for (const symbol of symbols) {
     roll -= symbol.weight;
@@ -45,6 +45,16 @@ function weightedSymbol() {
   }
 
   return symbols.at(-1).value;
+}
+
+function secureRandom() {
+  if (!window.crypto?.getRandomValues) {
+    return Math.random();
+  }
+
+  const values = new Uint32Array(1);
+  window.crypto.getRandomValues(values);
+  return values[0] / 2 ** 32;
 }
 
 function setMessage(text, type = "") {
