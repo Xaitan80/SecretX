@@ -2,7 +2,7 @@ const BONUS_SYMBOL = "🏴‍☠️";
 
 const symbols = [
   { value: "7", weight: 4 },
-  { value: BONUS_SYMBOL, weight: 5 },
+  { value: BONUS_SYMBOL, weight: 2 },
   { value: "X", weight: 7 },
   { value: "$", weight: 10 },
   { value: "#", weight: 13 },
@@ -177,6 +177,16 @@ function requestJackpotCheat() {
   setMessage("Test jackpot forced.");
   requestFastStop();
 }
+function requestBonusCheat() {
+  if (!state.spinning || !currentSpinResult) {
+    return;
+  }
+
+  state.jackpotCheatRequested = true;
+  currentSpinResult.fill(BONUS_SYMBOL);
+  setMessage("Test bonus forced.");
+  requestFastStop();
+}
 
 async function spin() {
   if (state.spinning || state.credits < state.bet) {
@@ -299,6 +309,10 @@ document.addEventListener("keydown", (event) => {
   if (event.code === "KeyJ") {
     event.preventDefault();
     requestJackpotCheat();
+  }
+  if (event.code == "KeyB") {
+    event.preventDefault();
+    requestBonusCheat();
   }
 });
 
